@@ -136,7 +136,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 	<script type="text/javascript">
 		//			var criterion = "d_mean";
 		// var criterion = "p_above";
-		var criterion = "p_below";
+		var criterion = "d_quartile";
 
 		var hist_xa = 0.0;
 		var hist_xb = 2.55;
@@ -241,8 +241,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		}
 
 		function styleFunction(feature, resolution, active = false) {
-			var stats = getStats(feature);
-			var n = feature.get('distance_overtaker_n');
+			var m = feature.get('distance_overtaker_measurements');
 			var zone = feature.get('zone');
 			if (zone == "urban") {
 				palette = paletteUrban;
@@ -259,25 +258,13 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			if (valid) {
 				switch (criterion) {
 					case "d_median":
-						color = palette.rgba_css(stats.median)
+						color = palette.rgba_css(m[Math.floor(m.length/2)])
+						break;
+					case "d_quartile":
+						color = palette.rgba_css(m[Math.floor(m.length/4)])
 						break;
 					case "d_min":
-						color = palette.rgba_css(stats.min)
-						break;
-					case "p_above":
-						var a = stats.n - stats.below;
-						var p = undefined;
-						if (n > 0) {
-							p = a / n;
-						}
-						color = palettePercentage.rgba_css(p * 100.0);
-						break;
-					case "p_below":
-						var p = undefined;
-						if (stats.n > 0) {
-							p = stats.below / stats.n;
-						}
-						color = palettePercentageZweirat.rgba(p * 100.0);
+						color = palette.rgba_css(m[0])
 						break;
 				}
 			} else {
