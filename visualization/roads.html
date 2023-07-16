@@ -191,7 +191,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		// Calculate statistics once
 		function getStats(feature) {
 		if (feature.stats != null) return feature.stats;
-		stats = {};
+			stats = {};
 			var limit = feature.get('distance_overtaker_limit');
 			var m = feature.get('distance_overtaker_measurements');
 			stats.n = m.length;
@@ -202,7 +202,8 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			feature.stats = stats;
 			return stats;
 		}
-		function annotation(feature, stats) {
+		function annotation(feature) {
+			var stats = getStats(feature);
 			var s = "<table>";
 
 			s += "<tr><td>Stra&szlig;enname:</td><td><a href=\"https://www.openstreetmap.org/way/" + feature.get('way_id') + "\" target=\"_blank\">" + feature.get('name')
@@ -211,7 +212,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			s += "<tr height=\"5em\"></tr>";
 
 			var p = stats.below / stats.n * 100.0;
-			s += "<tr><td>Unterschreitung Mindestabstand:</td><td>" + ((stats.n > 0) ? "n/a" : p.toFixed(1)) + "% der &Uuml;berholenden</td></tr>";
+			s += "<tr><td>Unterschreitung Mindestabstand:</td><td>" + ((stats.n == 0) ? "n/a" : p.toFixed(1)) + "% der &Uuml;berholenden</td></tr>";
 
 			var m = feature.get('distance_overtaker_measurements');
 			var mean = 0;
@@ -400,9 +401,8 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			var feature = vectorLayer.getSource().getClosestFeatureToCoordinate(evt.coordinate);
 			var resolution = map.getView().getResolution();
 
-			var stats = getStats(feature);
 			if (feature && dataSource.hasFeature(feature)) {
-				caption.innerHTML = annotation(feature, stats);
+				caption.innerHTML = annotation(feature);
 				caption.style.alignItems = "flex-start";
 
 				var zone = feature.get('zone');
