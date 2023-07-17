@@ -192,13 +192,13 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		function getStats(feature) {
 		if (feature.stats != null) return feature.stats;
 			stats = {};
-			var limit = feature.get('distance_overtaker_limit');
+			stats.limit = feature.get('distance_overtaker_limit');
 			var m = feature.get('distance_overtaker_measurements');
 			stats.n = m.length;
 			stats.median = m.length > 0 ? m[Math.floor(m.length/2)] : 0;
 			stats.min = m.length > 0 ? m[0] : 0;
 			stats.below = 0;
-			for (let i = 0; i < m.length && m[i] < limit; i++) stats.below++;
+			for (let i = 0; i < m.length && m[i] < stats.limit; i++) stats.below++;
 			feature.stats = stats;
 			return stats;
 		}
