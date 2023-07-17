@@ -214,6 +214,8 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			var p = stats.below / stats.n * 100.0;
 			s += "<tr><td>Unterschreitung Mindestabstand:</td><td>" + ((stats.n == 0) ? "n/a" : p.toFixed(1)) + "% der &Uuml;berholenden</td></tr>";
 
+			var ticks = feature.get('ticks');
+			if (ticks == 0) ticks = 1;
 			var m = feature.get('distance_overtaker_measurements');
 			var mean = 0;
 			for (let i = 0; i < m.length; i++) {
@@ -223,13 +225,17 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 
 			s += "<tr><td>Median &Uuml;berholabstand:</td><td>" + ((stats.median == 0) ? "n/a" : stats.median.toFixed(2)) + " m </td></tr>";
 
-			s += "<tr><td>Minimum &Uuml;berholabstand:</td><td>" + ((stats.min == 0) ? "n/a" : stats.min.toFixed(2)) + " m </td></tr>";
+			s += "<tr><td>Minimum &Uuml;berholabstand:</td><td>" + ((m.length == 0) ? "n/a" : m[0].toFixed(2)) + " m </td></tr>";
 
 			s += "<tr height=\"5em\"></tr>";
 
 			s += "<tr><td>Mindest&uuml;berholabstand:</td><td>" + ((stats.limit == null) ? "n/a" : stats.limit.toFixed(2)) + " m </td>";
 
+			s += "<tr><td>&Uuml;berholvorg&auml;nge pro Minute:</td><td>" + (m.length / ticks * 60).toFixed(1) + "</td></tr>";
+
 			s += "<tr><td>Anzahl Messungen:</td><td>" + stats.n.toFixed(0) + "</td></tr>";
+
+			s += "<tr><td>Dauer der Erfassung (min):</td><td>" + (ticks / 60).toFixed(1) + "</td></tr>";
 
 			s += "</table>";
 
