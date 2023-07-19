@@ -19,10 +19,12 @@
 
 import numpy as np
 import datetime
+import logging
 
 from obs.face.mapping import Roads
 from .BeliefPropagationChain import BeliefPropagationChain as BP
 
+log = logging.getLogger(__name__)
 
 class AnnotateMeasurements:
     def __init__(self, map_source, cache_dir='cache', osm_projection="filtered", fully_annotate_unconfirmed=False,
@@ -46,7 +48,7 @@ class AnnotateMeasurements:
 
         # add OSM file id
         measurements = self.add_osm_way_id(measurements)
-
+        self.filter_outlier(measurements)
         # add annotations
         measurements = self.add_osm_annotations(measurements)
 
@@ -251,3 +253,32 @@ class AnnotateMeasurements:
             measurements_annotated.append(m)
 
         return measurements_annotated
+
+    # look whether before and after current item there are three identical ones - indication of short wrong side deviation.
+    def filter_outlier(self, measurements) :
+        gap = 11
+        gap2 = int(gap / 2)
+        cor = 0
+        if len(measurements) < 7: return
+        ways = []
+        for i in range(gap):
+            ways.append(measurements[i].get("OSM_way_id", i))
+        for i in range(gap - 1, len(measurements)):
+            ways[i % gap] = measurements[i].get("OSM_way_id", i)
+            way1 = ways[i % gap]
+            way2 = ways[(i-1) % gap]
+            waym = ways[(i-gap2) % gap];
+            way4 = ways[(i+1) % gap]
+            way5 = ways[(i+2) % gap]
+            if way1 == way2 and waym != way1:
+                if way4 == way1 or way5 == way1:
+                    measurements[i - gap2]["OSM_way_id"] = way1
+                    measurements[i - gap2]["OSM_way_orientation"] = measurements[i]["OSM_way_orientation"]
+                    cor += 1
+
+            elif way4 == way5 and waym != way4:
+                if way4 == way1 or way4 == way2:
+                    measurements[i - gap2]["OSM_way_id"] = way4
+                    measurements[i - gap2]["OSM_way_orientation"] = measurements[i - (gap-1)]["OSM_way_orientation"]
+                    cor += 1
+        log.info("filter %d outlier %d", len(measurements), cor)
