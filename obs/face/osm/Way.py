@@ -68,11 +68,16 @@ class Way:
                 slen += seg_length[i]
                 if (slen > max_len and i != first):
                     log.info("split "+str(way_id)+"len = "+str(slen))
-                    ways[str(way_id)+'.'+str(i)] = Way(way_id, way, nodes[first:i])
+                    id = str(way_id)+'.'+str(i)
+                    ways[id] = Way(id, way, nodes[first:i+1])
                     first = i
                     slen = 0
-                
-        ways[way_id] = Way(way_id, way, nodes[first:])
+#                    from pprint import pprint
+#                    pprint(vars( ways[id]))
+        id = str(way_id)
+        ways[id] = Way(id, way, nodes[first:])
+#        from pprint import pprint
+#        pprint(vars( ways[str(way_id)]))
         return ways
         
 
