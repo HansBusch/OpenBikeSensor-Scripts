@@ -104,12 +104,14 @@ class AnnotateMeasurements:
                     m["OSM_way_orientation"] = way_orientation[0]
                     m["latitude_projected"] = lat_projected[0]
                     m["longitude_projected"] = lon_projected[0]
+                log.info("m: "+str(way_id[0]));
 
             measurements_annotated.append(m)
 
         return measurements_annotated
 
     def add_osm_way_id_filtered(self, measurements):
+        log.info("add_osm_way_id_filtered");
         measurements_annotated = []
 
         m_prev = None
