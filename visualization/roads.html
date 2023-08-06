@@ -404,44 +404,57 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		chart.render();
 
 		map.on('singleclick', function (evt) {
+			var lonlat = ol.proj.transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326');
 			var feature = vectorLayer.getSource().getClosestFeatureToCoordinate(evt.coordinate);
+			var lonlat2 = ol.proj.transform(feature.getGeometry().flatCoordinates, 'EPSG:3857', 'EPSG:4326');
+			var distance = ol.sphere.getDistance([lonlat[0], lonlat[1]], [lonlat2[0], lonlat2[1]]);
 			var resolution = map.getView().getResolution();
 
-			if (feature && dataSource.hasFeature(feature)) {
+			var hist;
+			if (distance > 200) {
+				var total = [];
+				vectorLayer.getSource().getFeatures().forEach(f => {
+					var m = f.get('distance_overtaker_measurements');
+					for (const key in m) {
+						total.push(m[key]);
+					}
+				});
+				hist = histogram(total).reverse();
+			}
+			else if (feature && dataSource.hasFeature(feature)) {
 				caption.innerHTML = annotation(feature);
 				caption.style.alignItems = "flex-start";
 
-				var zone = feature.get('zone');
-				var colors = undefined;
-				switch (zone) {
-					case "urban":
-						colors = histogramColorsUrban;
-						break;
-					case "rural":
-						colors = histogramColorsRural;
-						break;
-					default:
-						colors = histogramColorsUrban;
-				}
-
-				chart.updateOptions({
-					colors: colors
+				vectorLayer.getSource().getFeatures().forEach(f => {
+					if (f != feature) f.setStyle(styleFunction(f, resolution, false));
 				});
 
-				var hist = histogram(feature.get('distance_overtaker_measurements')).reverse();
-
-				chart.updateSeries([{
-					name: 'Überholende',
-					data: hist,
-				}]);
-
-				feature.setStyle(styleFunction(feature, resolution, true));
-				noFeatureActive = false;
+				hist = histogram(feature.get('distance_overtaker_measurements')).reverse();
 			}
 
-			vectorLayer.getSource().getFeatures().forEach(f => {
-				if (f != feature) f.setStyle(styleFunction(f, resolution, false));
+			var zone = feature.get('zone');
+			var colors = undefined;
+			switch (zone) {
+				case "urban":
+					colors = histogramColorsUrban;
+					break;
+				case "rural":
+					colors = histogramColorsRural;
+					break;
+				default:
+					colors = histogramColorsUrban;
+			}
+			chart.updateOptions({
+				colors: colors
 			});
+
+			chart.updateSeries([{
+				name: 'Überholende',
+				data: hist,
+			}]);
+
+			feature.setStyle(styleFunction(feature, resolution, true));
+			noFeatureActive = false;
 
 		});
 
