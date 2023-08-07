@@ -294,17 +294,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 				color = [128, 128, 128, 255];
 			}
 
-
-			var detail = smoothStep(resolution, 2.0, 1.0);
-			var mid = smoothStep(resolution, 30.0, 20.0) - smoothStep(resolution, 2.0, 1.0);
-			var overview = smoothStep(resolution, 20.0, 30.0);
-
-			console.log("resolution=" + resolution + "detail/mid/overview=" + detail + "/" + mid + "/" + overview);
-			var alpha = 1.0 * detail + 0.5 * mid + 0.5 * overview;
-			var width = active ? 2 : 1;
-			width = (active ? 8.0 : 2.0) * detail + 4 * mid + 200.0 / resolution * overview;
-
-			color[3] = alpha;
+			var width = (active ? 4.0 : 2.0); // * detail + 4 * mid + 200.0 / resolution * overview;
 
 			var style = new ol.style.Style({
 				stroke: new ol.style.Stroke({
@@ -453,6 +443,9 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 				selectedFeatures = [];
 			}
 			else if (feature && !evt.originalEvent.shiftKey) {
+				selectedFeatures.forEach(f => {
+					f.setStyle(styleFunction(f, resolution, false));
+				});
 				var name = feature.values_.name;
 				var total = [];
 				selectedFeatures = [];
