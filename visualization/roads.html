@@ -301,6 +301,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 
 		var map = new ol.Map({
 			target: 'map',
+			interactions : ol.interaction.defaults({doubleClickZoom :false}),
 			layers: [
 				new ol.layer.Tile({
 				    className: "bw",
@@ -421,6 +422,19 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 				});
 				hist = histogram(total).reverse();
 			}
+			else if (feature && !evt.originalEvent.shiftKey) {
+				var name = feature.values_.name;
+				var total = [];
+				vectorLayer.getSource().getFeatures().forEach(f => {
+					if (f.values_.name == name) {
+						var m = f.get('distance_overtaker_measurements');
+						for (const key in m) {
+							total.push(m[key]);
+						}
+					}
+				});
+				hist = histogram(total).reverse();
+			}
 			else if (feature && dataSource.hasFeature(feature)) {
 				caption.innerHTML = annotation(feature);
 				caption.style.alignItems = "flex-start";
@@ -457,9 +471,6 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			noFeatureActive = false;
 
 		});
-
-
-
 
 		// palettePercentageInverted.writeLegend('colorbar', [0, 100.0], '%');
 		palettePercentageZweirat.writeLegend('colorbar', [0, 100.0], '%');
