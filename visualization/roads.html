@@ -103,6 +103,9 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			left: unset;
 			right: 8px;
 		}
+		td {
+			padding-left: 10px;
+		}
 	</style>
 	<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -121,8 +124,6 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		</div>
 		<div id="chart" class="chart"></div>
 		<div id="caption" class="caption">
-			<b>Bitte einen Streckenabschnitt in der Karte (farbige Linien) anklicken um detailierte Informationen zu
-				erhalten.</b>
 		</div>
 		<div id="legend" class="legend">
 			<b>Kartenlegende</b><br>
@@ -222,7 +223,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		function annotation(features) {
 			var stats = globalStats;
 			var way_id = 'all';
-			var name = 'All';
+			var name;
 			if (features.length > 0) {
 				 stats = getStats(features);
 				var feature = features[0];
@@ -230,13 +231,14 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 				name = feature.get('name');
 			}
 			var s = "<table>";
-
-			s += "<tr><td>Stra&szlig;enname:</td><td><a href=\"https://www.openstreetmap.org/way/" + way_id + "\" target=\"_blank\">" + name + "</a></td></tr>";
-
+			if (name) {
+				s += "<tr><td>Stra&szlig;enname:</td><td colspan='3'><a href=\"https://www.openstreetmap.org/way/" + way_id + "\" target=\"_blank\">" + name + "</a></td></tr>";
+			}
+			else {
+				s += "<tr><td colspan='5'><b>&Uuml;bersicht</b>. Bitte Stra&szlig;en anklicken um lokale Informationen zu erhalten. Einzelne Segmente k&ouml;nnen mit 'Shift' an- und abgew&auml;hlt werden.</td></tr>";
+			}
 			s += "<tr height=\"5em\"></tr>";
 
-			var p = stats.below / stats.n * 100.0;
-			s += "<tr><td>Unterschreitung Mindestabstand:</td><td>" + ((stats.n == 0) ? "n/a" : p.toFixed(1)) + "% der &Uuml;berholenden</td></tr>";
 
 			var ticks = stats.ticks;
 			if (ticks == 0) ticks = 1;
@@ -245,25 +247,33 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			for (let i = 0; i < m.length; i++) {
 				mean += m[i];
 			}
-			s += "<tr><td>Median &Uuml;berholabstand:</td><td>" + ((stats.median == 0) ? "n/a" : stats.median.toFixed(2)) + " m </td></tr>";
+			s += "<tr><td></td><td>Mittel</td><td>Viertel</td><td>Zehntel</td><td>Minimum</td></tr>";
+			s += "<tr><td>&Uuml;berholabst&auml;nde:</td><td>";
+			s += ((stats.median == 0) ? "n/a" : stats.median.toFixed(2)) + " m </td><td>";
 
 			var quartil = (m.length > 0) ? m[Math.floor(m.length/4)] : 0;
-			s += "<tr><td>Quartil &Uuml;berholabstand:</td><td>" + ((quartil == 0) ? "n/a" : quartil.toFixed(2)) + " m </td></tr>";
+			s += ((quartil == 0) ? "n/a" : quartil.toFixed(2)) + " m </td><td>";
 
 			var dezil = (m.length > 0) ? m[Math.floor(m.length/10)] : 0;
-			s += "<tr><td>Dezil &Uuml;berholabstand:</td><td>" + ((dezil == 0) ? "n/a" : dezil.toFixed(2)) + " m </td></tr>";
+			s += ((dezil == 0) ? "n/a" : dezil.toFixed(2)) + " m </td><td>";
+			s += ((m.length == 0) ? "n/a" : m[0].toFixed(2)) + " m </td></tr>";
 
-			s += "<tr><td>Minimum &Uuml;berholabstand:</td><td>" + ((m.length == 0) ? "n/a" : m[0].toFixed(2)) + " m </td></tr>";
 
 			s += "<tr height=\"5em\"></tr>";
 
-			s += "<tr><td>Mindest&uuml;berholabstand:</td><td>" + ((stats.limit == null) ? "n/a" : stats.limit.toFixed(2)) + " m </td>";
+			var p = stats.below / stats.n * 100.0;
+			s += "<tr><td>Unterschreitung Mindestabstand von " + ((stats.limit == null) ? "n/a" : stats.limit.toFixed(2)) + " m :</td><td colspan='3'>" + ((stats.n == 0) ? "n/a" : p.toFixed(1)) + "% der &Uuml;berholenden</td></tr>";
 
 			s += "<tr><td>&Uuml;berholvorg&auml;nge pro Minute:</td><td>" + (m.length / ticks * 60).toFixed(1) + "</td></tr>";
 
 			s += "<tr><td>Anzahl Messungen:</td><td>" + stats.n.toFixed(0) + "</td></tr>";
 
-			s += "<tr><td>Dauer der Erfassung (min):</td><td>" + (ticks / 60).toFixed(1) + "</td></tr>";
+			if (ticks > 3600) {
+				s += "<tr><td>Dauer der Erfassung:</td><td>" + (ticks / 3600).toFixed(1) + " h</td></tr>";
+			}
+			else {
+				s += "<tr><td>Dauer der Erfassung:</td><td>" + (ticks / 60).toFixed(1) + " min</td></tr>";
+			}
 
 			s += "</table>";
 
@@ -356,6 +366,9 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 				const overlay = document.getElementById("overlay");
 				const marginLeft = overlay.offsetWidth + overlay.offsetLeft;
     			map.getView().fit(extent, {size: mapSize, padding: [0, 0, 0, marginLeft]});
+				var evt0 = {coordinate: [0,0]};
+				onclick(evt0);
+
 			}
 		});
 
@@ -422,25 +435,20 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		var chart = new ApexCharts(document.querySelector("#chart"), chartOptions);
 		chart.render();
 
-		map.on('singleclick', function (evt) {
+		function onclick(evt) {
 			var lonlat = ol.proj.transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326');
 			var feature = vectorLayer.getSource().getClosestFeatureToCoordinate(evt.coordinate);
-			var closest = feature.getGeometry().getClosestPoint(evt.coordinate);
-			var lonlat2 = ol.proj.transform(closest, 'EPSG:3857', 'EPSG:4326');
-			var distance = ol.sphere.getDistance([lonlat[0], lonlat[1]], [lonlat2[0], lonlat2[1]]);
+			var distance = 10000;
+			if (feature) {
+				var closest = feature.getGeometry().getClosestPoint(evt.coordinate);
+				var lonlat2 = ol.proj.transform(closest, 'EPSG:3857', 'EPSG:4326');
+				distance = ol.sphere.getDistance([lonlat[0], lonlat[1]], [lonlat2[0], lonlat2[1]]);
+			}
 			var resolution = map.getView().getResolution();
 
-			var zone = feature.get('zone');
-			var colors = undefined;
-			switch (zone) {
-				case "urban":
-					colors = histogramColorsUrban;
-					break;
-				case "rural":
-					colors = histogramColorsRural;
-					break;
-				default:
-					colors = histogramColorsUrban;
+			var colors = histogramColorsUrban;
+			if (feature && feature.get('zone') == "rural") {
+				colors = histogramColorsRural;
 			}
 			chart.updateOptions({
 				colors: colors
@@ -496,10 +504,12 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 
 			noFeatureActive = false;
 
-		});
+		}
+		map.on('singleclick', onclick);
 
 		// palettePercentageInverted.writeLegend('colorbar', [0, 100.0], '%');
 		palettePercentageZweirat.writeLegend('colorbar', [0, 100.0], '%');
+		
 	</script>
 </body>
 
