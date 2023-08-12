@@ -50,6 +50,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			left: 1%;
 			top: 1%;
 			z-index: 0;
+			pointer-events: none;
 		}
 
 		.title {
@@ -81,6 +82,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			padding: 5px;
 			align-items: center;
 			z-index: 0;
+			pointer-events: auto;
 		}
 
 		.chart {
@@ -89,6 +91,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			background-color: #FFFFFF;
 			padding: 5px;
 			z-index: 0;
+			pointer-events: auto;
 		}
 
 		.ol-zoom {
@@ -248,13 +251,13 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 
 			s += "<tr><td>&Uuml;berholvorg&auml;nge pro Minute:</td><td>" + (m.length / ticks * 60).toFixed(1) + "</td></tr>";
 
-			s += "<tr><td>Anzahl Messungen:</td><td>" + stats.n.toFixed(0) + "</td></tr>";
+			s += "<tr><td>Anzahl &Uuml;berholvorg&auml;nge:</td><td>" + stats.n.toFixed(0) + "</td></tr>";
 
 			if (ticks > 3600) {
 				s += "<tr><td>Dauer der Erfassung:</td><td>" + (ticks / 3600).toFixed(1) + " h</td></tr>";
 			}
 			else {
-				s += "<tr><td>Dauer der Erfassung:</td><td>" + (ticks / 60).toFixed(1) + " min</td></tr>";
+				s += "<tr><td>Dauer der Erfassung:</td><td colspan='2'>" + (ticks / 60).toFixed(1) + " min</td></tr>";
 			}
 
 			s += "</table>";
