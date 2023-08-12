@@ -43,7 +43,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		.overlay {
 			display: flex;
 			flex-direction: column;
-			justify-content: space-around;
+			justify-content: space-between;
 			position: absolute;
 			width: 30%;
 			height: 98%;
@@ -57,7 +57,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			position: relative;
 			height: 10%;
 			width: 100%;
-			background-color: #FFFFFF;
+#			background-color: #FFFFFF;
 			padding: 5px;
 			z-index: 0;
 		}
@@ -91,14 +91,6 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			z-index: 0;
 		}
 
-		.legend {
-			height: 15%;
-			width: 100%;
-			background-color: #FFFFFF;
-			padding: 5px;
-			z-index: 0;
-		}
-
 		.ol-zoom {
 			left: unset;
 			right: 8px;
@@ -116,13 +108,10 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 <body>
 	<div id="map" class="map"></div>
 	<div id="overlay" class="overlay">
+		<div id="chart" class="chart"></div>
 		<div id="title" class="title">
 			<div id="title_image"><img src="images/OBS.png" height="100%"></img></div>
-			<div id="title_text">
-				<h4>Visualisierung: Stra&szlig;enabschnitte </h4>
-			</div>
 		</div>
-		<div id="chart" class="chart"></div>
 		<div id="caption" class="caption">
 		</div>
 	</div>
