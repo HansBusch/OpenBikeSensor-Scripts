@@ -55,8 +55,7 @@ class ExportRoadAnnotation:
                     way = self.map_source.get_way_by_id(way_id)
                     if way:
                         self.way_statistics[way_id] = WayStatistics(way_id, way)
-                        self.way_statistics[way_id].n_ticks[way_orientation] += 1
-                else:
+                if way_id in self.way_statistics and sample["speed"] != 0:
                     self.way_statistics[way_id].n_ticks[way_orientation] += 1
               
                 continue
@@ -79,13 +78,15 @@ class ExportRoadAnnotation:
                     self.n_grouped += 1
                 else:
                     logging.warning("way not found in map")
+            self.way_statistics[way_id].n_ticks[way_orientation] += 1
 
     def finalize(self):
         log.info("%s samples, %s valid", self.n_samples, self.n_valid)
         features = []
         for way_stats in self.way_statistics.values():
             way_stats.finalize()
-            if not any(way_stats.valid):
+#            if not any(way_stats.valid):
+            if not any(way_stats.n_ticks):
                 continue
 
             for i in range(1 if way_stats.oneway else 2):

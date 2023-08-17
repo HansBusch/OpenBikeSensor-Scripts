@@ -67,7 +67,7 @@ class Way:
             for i in range(len(seg_length)):
                 slen += seg_length[i]
                 if (slen > max_len and i != first):
-                    log.info("split "+str(way_id)+"len = "+str(slen))
+#                    log.info("split "+str(way_id)+"len = "+str(slen))
                     id = str(way_id)+'.'+str(i)
                     ways[id] = Way(id, way, nodes[first:i+1])
                     first = i

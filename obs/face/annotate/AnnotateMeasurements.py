@@ -32,7 +32,7 @@ class AnnotateMeasurements:
         self.fully_annotate_unconfirmed = fully_annotate_unconfirmed
 
         self.map_source = map_source
-        self.roads = Roads(map_source, d_max=point_way_tolerance, d_phi_max=90, cache_dir=cache_dir)
+        self.roads = Roads(map_source, d_max=point_way_tolerance, d_phi_max=40, cache_dir=cache_dir)
         self.point_way_tolerance = point_way_tolerance
 
         if osm_projection == "greedy":
@@ -235,7 +235,7 @@ class AnnotateMeasurements:
     def add_osm_annotations(self, measurements):
         measurements_annotated = []
         for m in measurements:
-            if (self.fully_annotate_unconfirmed or m["confirmed"] is True) and "OSM_way_id" in m:
+            if (self.fully_annotate_unconfirmed or m["confirmed"] is True) and "OSM_way_id" in m and "latitude_projected" in m:
                 m["has_OSM_annotations"] = True
                 # replace lat/lon by projected values, but backup original values
                 m["latitude_GPS"] = m["latitude"]

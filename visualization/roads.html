@@ -286,19 +286,27 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			var color = [0, 0, 0, 255];
 
 			if (valid) {
+				var rgba;
 				switch (criterion) {
 					case "d_median":
-						color = palette.rgba_css(m[Math.floor(m.length/2)])
+						color = palette.rgba(m[Math.floor(m.length/2)])
 						break;
 					case "d_quartile":
-						color = palette.rgba_css(m[Math.floor(m.length/4)])
+						color = palette.rgba(m[Math.floor(m.length/4)])
 						break;
 					case "d_min":
-						color = palette.rgba_css(m[0])
+						color = palette.rgba(m[0])
 						break;
 				}
+				if (m.length < 2) {
+					var sum = color[0] + color[1] + color[2];
+					color = [color[0] * 240 / sum, color[1] * 240 / sum, color[2] * 240 / sum, 255];
+					if (color[0] < 220) color[0] = 220;
+					if (color[1] < 220) color[1] = 220;
+					if (color[2] < 220) color[2] = 220;
+				}
 			} else {
-				color = [128, 128, 128, 255];
+				color = [220, 230, 220, 255];
 			}
 
 			var width = (active ? 4.0 : 2.0); // * detail + 4 * mid + 200.0 / resolution * overview;
@@ -492,9 +500,6 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		}
 		map.on('singleclick', onclick);
 
-		// palettePercentageInverted.writeLegend('colorbar', [0, 100.0], '%');
-		palettePercentageZweirat.writeLegend('colorbar', [0, 100.0], '%');
-		
 	</script>
 </body>
 
