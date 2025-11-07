@@ -98,7 +98,7 @@ class Way:
                 if (slen > max_len and i != first):
                     w_id = Way.subid(way_id, ways)
                     ways[w_id] = Way(w_id, way, newnodes[first:])
-                    first = i
+                    first = len(newnodes) - 1
                     slen = 0
         if slen > 0:
             w_id = Way.subid(way_id, ways)
