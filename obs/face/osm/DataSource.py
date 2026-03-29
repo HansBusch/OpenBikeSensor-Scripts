@@ -37,6 +37,12 @@ class DataSource:
         self.tile_source = TileSource()
         self.tile_zoom = tile_zoom
         self.chunk_size = 100
+        self.black_list = {}
+
+    def load_black_list(self, file):
+        with open(file) as f:
+            for line in f:
+                self.black_list[int(line.strip())] = 1
 
     def ensure_coverage(self, lat, lon, extend=0.0):
         tiles = self.tile_source.get_required_tiles(lat, lon, self.tile_zoom, extend=extend)
@@ -44,7 +50,7 @@ class DataSource:
             self.add_tile(tile)
 
     def get_way_by_id(self, way_id):
-        if way_id and way_id in self.ways:
+        if way_id and way_id in self.ways and way_id not in self.black_list:
             return self.ways[way_id]
         else:
             return None
@@ -56,7 +62,7 @@ class DataSource:
         # skip if already in tile list
         if tile in self.loaded_tiles:
             return
-
+        
         # request tile, will be returned as a node-way-relation-split
         nodes, ways, relations = self.tile_source.get_tile(tile[0], tile[1], tile[2])
 
@@ -65,7 +71,7 @@ class DataSource:
 
         # add way objects, and store
         for way_id, way in ways.items():
-            if way_id not in self.ways:
+            if way_id not in self.ways and way_id not in self.black_list:
                 w = Way.create(way_id, way, nodes, self.chunk_size)
                 self.ways.update(w)
                 for id in w:

@@ -396,6 +396,7 @@ def main():
     if args.annotate or args.collect or args.visualization:
         logging.info('Loading OpenStreetMap data')
         map_source = OSMDataSource(cache_dir=args.path_cache)
+        map_source.load_black_list('data/blacklist.txt')
         if args.chunk is not None:
             map_source.chunk_size = args.chunk
 
