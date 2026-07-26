@@ -49,6 +49,7 @@ class PrivacyFilter(MeasurementFilter):
             "distance_stationary",
             "confirmed",
             "course",
+            "comment",
             "speed",
             "user_id",
             "measurement_id",

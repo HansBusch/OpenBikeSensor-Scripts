@@ -244,11 +244,12 @@ class ImportMeasurementsCsv:
             # write filter results
             if i >= 0:
                 # check validity
+                log.info("n_valid %d, course %s, speed %s", n_valid, measurements[i]["course"], measurements[i]["speed"] )
                 if n_valid == l and (measurements[i]["course"] is None or measurements[i]["speed"] is None):
                     # all elements are valid
                     # transfer to a local map around middle element
                     xy, local_map = self.to_local_tangent(p)
-                    # approximate derivative vector
+                    # approximate derivative vectorzz
                     v = 0.5 * (xy[2] - xy[0])
                     # compute compass direction
                     if measurements[i]["course"] is None:
@@ -287,6 +288,8 @@ class ImportMeasurementsCsv:
         p_prev = None
 
         for m in measurements:
+            module_log.debug("valid: %s %s %s %s", m["comment"], m["longitude"], m["latitude"], m["time"])
+
             valid = m["longitude"] is not None and m["latitude"] is not None and m["time"] is not None
             confirmed = valid and (m["confirmed"] is True)
             n += 1

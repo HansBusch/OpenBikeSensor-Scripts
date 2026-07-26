@@ -56,6 +56,9 @@ class ExportMeasurements:
             if course is not None:
                 course = 90.0 - math.degrees(course)
                 course = course % 360.0
+            comment = ''
+            if "comment" in m:
+                comment = m["comment"]
 
             if self.show_GPS_position:
                 p_lon, p_lat = m["longitude_GPS"], m["latitude_GPS"]
@@ -68,6 +71,7 @@ class ExportMeasurements:
                                       "distance_stationary": m["distance_stationary"],
                                       "confirmed": m["confirmed"],
                                       "course": course,
+                                      "comment": comment,
                                       "speed": m["speed"],
                                       "user_id": m.get("user_id"),
                                       "measurement_id": m.get("measurement_id"),

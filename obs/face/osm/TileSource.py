@@ -11,7 +11,7 @@ from obs.face.mapping.LocalMap import EquirectangularFast as LocalMap
 
 class TileSource:
     def __init__(self, cache_dir='./cache', use_cache=True):
-        self.overpass_url = "http://overpass-api.de/api/interpreter"
+        self.overpass_url = "https://overpass-api.de/api/interpreter"
 
         self.query_template = dict()
 
@@ -50,7 +50,8 @@ class TileSource:
         if request_tile:
             # request from OSM server
             response = self.request_tile(zoom, x_tile, y_tile, filter_id)
-
+            if response == None:
+                return {}, {}, {}
             # convert to nodes and ways
             nodes, ways, relations = self.convert_to_dict(response)
 
@@ -73,8 +74,10 @@ class TileSource:
         success = False
         for try_count in range(3):
             # send query and receive answer
+            headers = { 'User-Agent': 'OBS-script' }
+
             response = requests.get(self.overpass_url,
-                                    params={'data': query})
+                                    params={'data': query}, headers=headers)
 
             if response.status_code == 200:
                 success = True

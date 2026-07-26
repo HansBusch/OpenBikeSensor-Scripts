@@ -96,7 +96,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
   <div id="map" class="map"></div>
   <div id="overlay" class="overlay">
 	  <div id="title" class="title">
-	    <div id="title_image"><img src="images/OBS.png" height="100%"></img></div>
+	    <div id="title_image"><img src="images/OBS.png" height="100%"/></div>
 	    <div id="title_text">
 	      <h4>Visualisierung: Messwerte </h4>
 	    </div>
@@ -105,8 +105,18 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
     	<b>Bitte einen Messpunkt in der Karte (farbige Kreise) anklicken um detailierte Informationen zu erhalten.</b>
     </div>
     <div class="legend">
-		<b>Filter</b><br/>
-		<input id='filter' size='30'/>
+		<b>Beteiligte:</b><div style='margin-left:15px'>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterRad" name="Rad" />Rad</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterFuss"/>Fu&szlig;</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterPkw"/>PKW</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterLkw"/>LKW</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterKrad"/>Krad</label></br>
+		<label onclick="updateFilter()"><input type="checkbox" id="filter2Rad" name="Rad" />Rad</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filter2Fuss"/>Fu&szlig;</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filter2Pkw"/>PKW</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filter2Lkw"/>LKW</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filter2Krad"/>Krad</label>
+		</div>
 	</div>
   </div>
 
@@ -115,8 +125,30 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
     function annotation(feature){
     var s = "<table>";
 
-    d = feature.get('distance_overtaker');
-    s += "<td><div title='distance_overtaker'>&Uuml;berholabstand:</div></td><td><b>" + ((d == null)?"n/a":d.toFixed(2)) + " m</b></td></tr>";
+	const kats = ["", "Todesfolge", "Schwerverletzt", "Leichtverletzt"]
+	cat = kats[Number(feature.get('KAT'))]
+	const arts = ["", "Zusammensto\u00DF mit anfahrendem/anhaltendem/ruhendem Fahrzeug", "Zusammensto\u00DF mit vorausfahrendem / wartendem Fahrzeug", "Zusammensto\u00DF mit seitlich in gleicher Richtung fahrendem Fahrzeug", "Zusammensto\u00DF mit entgegenkommendem Fahrzeug",
+		"Zusammensto\u00DF mit einbiegendem / kreuzendem Fahrzeug", "Zusammensto\u00DF zwischen Fahrzeug und Fu\u00DFg\u00e4nger", "Aufprall auf Fahrbahnhindernis", "Abkommen von Fahrbahn nach rechts", "Abkommen von Fahrbahn nach links", "Unfall anderer Art"]
+	art = arts[Number(feature.get('ART'))]
+	const typs = ["", "Fahrunfall", "Abbiegeunfall", "Einbiegen / Kreuzen-Unfall", "Überschreiten-Unfall", "Unfall durch ruhenden Verkehr", "Unfall im L\u00e4ngsverkehr", "sonstiger Unfall"]
+	typ = typs[Number(feature.get('TYP'))]
+	parties = "";
+	for (let c of feature.get('IST'))	 {
+		if (c == 'R') { parties += "Rad ";}
+		else if (c == 'P') { parties += "PKW ";}
+		else if (c == 'F') { parties += "Fu\u00DFg\u00e4nger ";}
+		else if (c == 'K') { parties += "Kraftrad ";}
+		else if (c == 'L') { parties += "LKW ";}
+	}
+//			} else if (kv[0] == "ART") {
+//			} else if (kv[0] == "TYP") {
+//			} else if (kv[0] == "IST") }
+	
+    s += "<td><div title='category'>Kategorie:</div></td><td><b>" + cat + "</b></td></tr>";
+    s += "<td><div title='reason'>Unfallart:</div></td><td><b>" + art + "</b></td></tr>";
+    s += "<td><div title='type'>Unfalltyp:</div></td><td><b>" + typ + "</b></td></tr>";
+    s += "<td><div title='type'>Beteiligte:</div></td><td><b>" + parties + "</b></td></tr>";
+	
     s += "<tr><td>Zeit/Datum der Messung:</td><td>" + feature.get('time') + "</td></tr>";
 
     s += "<tr><td><div title='user_id'>Benutzer (pseudonymisiert):</div></td><td>" + feature.get('user_id') + "</td></tr>";
@@ -153,6 +185,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
     s += "<tr><td>Einbahnsstra&szlig;e:</td><td>" + feature.get('OSM_oneway') + "</td></tr>";
     s += "<tr><td>OSM Weg-ID:</td><td><a href=\"https://www.openstreetmap.org/way/" + feature.get('OSM_way_id') + "\" target=\"_blank\">" + feature.get('OSM_way_id') + "</a></td></tr>";
     s += "<tr><td>Fahrtrichtung:</td><td>" + feature.get('OSM_way_orientation') + "</td></tr>";
+    s += "<tr><td>Comment:</td><td>" + feature.get('comment') + "</td></tr>";
     } else {
     s += "<tr><td colspan=2>keine OpenStreemMap Informationen vorhanden</td></tr>";
     }
@@ -237,14 +270,14 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
     width: 3
     });
 
-    var strokeUnknown = new ol.style.Stroke({
-    color: 'rgba(0, 0, 0, 255)',
+    var strokeDefault = new ol.style.Stroke({
+    color: 'rgba(128, 128, 128, 255)',
     width: 1
     });
 
-    var strokeUrban = new ol.style.Stroke({
-    color: 'rgba(0, 0, 255, 255)',
-    width: 1
+    var strokeDeselected = new ol.style.Stroke({
+    color: 'rgba(0, 0, 0, 128)',
+    width: 0.5
     });
 
     var strokeRural = new ol.style.Stroke({
@@ -264,27 +297,38 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
     })
 
     function styleFunction(feature, resolution, active) {
-    var d = feature.get('distance_overtaker');
-    var projected = feature.get('has_OSM_annotations');
-    var zone = feature.get('OSM_zone');
-    var color = colorUndefinedDistance;
-    var stroke = strokeUnknown;
-    if (d != undefined){
-    if (zone=="urban"){
-    color = paletteUrban.rgba_css(d);
-    stroke = strokeUrban;
-    } else if (zone=="rural"){
-    color = paletteRural.rgba_css(d);
-    stroke = strokeRural;
-    }  else {
-    color = paletteUrban.rgba_css(d);
-    stroke = strokeUnknown;
-    }
-    }
+	
+    var d = Number(feature.get('KAT'))
+	color = [0,0,255,255];
+	switch(d) {
+	case 1: color = [170, 0, 0, 255]; break;
+	case 2: color = [240, 0, 0, 255]; break;
+	case 3: color = [253, 218, 13, 255]; break;
+//	case 1: color = [240, 0, 0, 255]; break;
+//	case 2: color = [245, 151, 51, 255]; break;
+//	case 3: color = [245, 254, 0, 255]; break;
+	}
+    var stroke = strokeDefault;
 
-	var r = 5;
-	if (active < 0) r = 2;
-	if (active > 0) r = 10;
+	if (show.length > 0) {
+		var match = false;
+		var match2 = show2.length == 0
+		var ist = feature.get("IST");
+		for (let c of show) {
+			if (ist.includes(c)) match = true;
+		}
+		for (let c of show2) {
+			if (ist.includes(c)) match2 = true;
+		}
+		if (!(match && match2)) { 
+			color[3] = 0; 
+			stroke = strokeDeselected;
+		}
+	}
+
+	var r = 4;
+	if (active < 0) r = 3;
+	if (active > 0) r = 6;
 
     var style = new ol.style.Style({
     image: new ol.style.Circle({
@@ -300,6 +344,16 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 
     const changeListener = dataSource.once('change', function(event) {
     		if (dataSource.getState() == 'ready') {
+				dataSource.forEachFeature(feature => {
+					var com = feature.get("comment").split(" ");
+					for (let i of com) {
+						let kv = i.split(':')
+						if (kv.length == 2) {
+							feature.set(kv[0], kv[1]);
+						}
+					}
+				});
+
 				const extent = vectorLayer.getSource().getExtent();
 				const mapSize = map.getSize();
 				const overlay = document.getElementById("overlay");
@@ -308,52 +362,22 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			}
 		});
 
-    var arrowStyle = new ol.style.Style({
-    stroke: new ol.style.Stroke({
-    color: 'rgba(0, 0, 0, 255)',
-    width: 3})
-    });
-
-
-    var arrowLayer = new ol.layer.Vector({
-    source: new ol.source.Vector(),
-    style: arrowStyle
-    });
-    map.addLayer(arrowLayer);
-
-    // add arrow features
-    var key = dataSource.once('change', function(event) {
-    if (dataSource.getState() == 'ready') {
-    dataSource.forEachFeature(
-    function(feature){
-    var c = feature.get('course');
-    // var v = feature.get('speed');
-    var v = 10.0;
-    if (c != undefined && v!=undefined) {
-    c = (90.0 - c) * Math.PI / 180.0;
-    var p1 = feature.getGeometry().getCoordinates();
-    var p2 = [p1[0]+Math.cos(c)*v, p1[1] +Math.sin(c)*v];
-    var f = new ol.Feature({
-    geometry: new ol.geom.LineString(
-    [p1, p2]
-    ),
-	parent: feature
-    });
-    // f.setStyle(styles);
-    arrowLayer.getSource().addFeature(f);
-    }
-    }
-    );
-    }
-    else
-    {
-
-    }
-    });
-
-
-    arrowLayer.setVisible(true);
-
+	var show = "", show2 = ""
+	function updateFilter() {
+		show = "";
+		show2 = "";
+		if (document.getElementById("filterRad").checked) show += 'R';
+		if (document.getElementById("filterFuss").checked) show += 'F';
+		if (document.getElementById("filterPkw").checked) show += 'P';
+		if (document.getElementById("filterLkw").checked) show += 'L';
+		if (document.getElementById("filterKrad").checked) show += 'K';
+		if (document.getElementById("filter2Rad").checked) show2 += 'R';
+		if (document.getElementById("filter2Fuss").checked) show2 += 'F';
+		if (document.getElementById("filter2Pkw").checked) show2 += 'P';
+		if (document.getElementById("filter2Lkw").checked) show2 += 'L';
+		if (document.getElementById("filter2Krad").checked) show2 += 'K';
+		selectNode(null);
+	}
 	function selectNode(feature) {
 		if (feature != null) {
 			var prop = feature.getProperties();
@@ -394,7 +418,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		return feature;
     });
 
-	var input = document.getElementById("filter");
+	var input = document.getElementById("filterRad");
 	input.addEventListener("keypress", function(event) {
 		if (event.key === "Enter") {
 		event.preventDefault();
@@ -404,7 +428,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			var f = {key:args[0], op:args[1], val:args[2]}
 			displayFilter.push(f);
 		}
-		selectNode(null);
+		updateFilter();
   }
 }); 
   </script>
