@@ -26,7 +26,7 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 class Roads:
-    def __init__(self, maps_source, d_max=10.0, d_phi_max=40.0, cache_dir='cache'):
+    def __init__(self, maps_source, d_max=20.0, d_phi_max=180.0, cache_dir='cache'):
         self.d_max = d_max
         self.d_phi_max = math.radians(d_phi_max)
 
@@ -53,7 +53,7 @@ class Roads:
         for i in range(m):
             d_x = dist_x_list[i]
             d_dir = dist_phi_list[i]
-            if d_x <= self.d_max and d_dir <= self.d_phi_max:
+            if d_x <= self.d_max:
                 d[i] = d_x
                 n_valid += 1
 
@@ -78,7 +78,12 @@ class Roads:
 
     def find_near(self, lat_lon, course):
         # find candidates, exclude only those which are safe to exclude
-        ways = self.map_source.find_approximate_near_ways(lat_lon, self.d_max)
+		# ignore streets without names to exclude outside roads
+        ways1 = self.map_source.find_approximate_near_ways(lat_lon, self.d_max)
+        ways = []
+        for way in ways1:
+            if  'name' in way.tags and way.tags["name"] != "":
+                ways.append(way)
 
         # then enumerate all candidates an do precise search
         dist_x = []

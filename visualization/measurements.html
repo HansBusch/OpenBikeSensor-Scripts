@@ -42,7 +42,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 	  flex-direction: column;
 	  justify-content: space-around;
 	  position: absolute;
-	  width: 30%;
+	  width: 25%;
 	  height: 98%;
 	  left: 1%;
 	  top: 1%;
@@ -51,7 +51,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 	  .title {
 	  display: flex;
 	  position: relative;
-	  height:10%;
+	  height:20%;
 	  width: 100%;
 	  background-color: #FFFFFF;
 	  padding: 5px;
@@ -68,7 +68,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 	  }
 	  .caption {
 	  	display: flex;
-	  height: 50%;
+	  height: 25%;
 	  width: 100%;
 	  background-color: #FFFFFF;
 	  padding: 5px;
@@ -90,37 +90,54 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
   <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js"></script>
   <script src="OBS.js"></script>
 
-  <title>OpenBikeSensor Visualizierung: Messwerte</title>
+  <title>Unfallstatistik</title>
 </head>
 <body>
   <div id="map" class="map"></div>
   <div id="overlay" class="overlay">
 	  <div id="title" class="title">
-	    <div id="title_image"><img src="images/OBS.png" height="100%"/></div>
+	    <!--<div id="title_image"><img src="images/OBS.png" height="100%"/></div>-->
 	    <div id="title_text">
-	      <h4>Visualisierung: Messwerte </h4>
+	      <h4>Unfallstatistik</h4>
+		  		<table>
+		<thead><th></th><th>Fu&szlig;</th><th>Rad</th><th>PKW</th><th>LKW</th><th>Krad</th><th>Sonstig</th></thead>
+		<tbody id='stats'></tbody>
+		</table>
+
+		  <p>Datenbasis <a href='https://www.opengeodata.nrw.de/produkte/transport_verkehr/unfallatlas/'>Unfallatlas OpenGeodata.NRW</a></p>
+		  <p>Visualisierung abgeleitet von <a href='https://github.com/openbikesensor/OpenBikeSensor-Scripts'>Open Bike Sensor Script</a>
 	    </div>
 	  </div>
     <div id="caption" class="caption">
     	<b>Bitte einen Messpunkt in der Karte (farbige Kreise) anklicken um detailierte Informationen zu erhalten.</b>
     </div>
     <div class="legend">
-		<b>Beteiligte:</b><div style='margin-left:15px'>
+		<h4>Filter</h4>
+		Beteiligte:<div style='margin-left:15px'>
 		<label onclick="updateFilter()"><input type="checkbox" id="filterRad" name="Rad" />Rad</label>
 		<label onclick="updateFilter()"><input type="checkbox" id="filterFuss"/>Fu&szlig;</label>
 		<label onclick="updateFilter()"><input type="checkbox" id="filterPkw"/>PKW</label>
 		<label onclick="updateFilter()"><input type="checkbox" id="filterLkw"/>LKW</label>
-		<label onclick="updateFilter()"><input type="checkbox" id="filterKrad"/>Krad</label></br>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterKrad"/>Krad</label><br/>
 		<label onclick="updateFilter()"><input type="checkbox" id="filter2Rad" name="Rad" />Rad</label>
 		<label onclick="updateFilter()"><input type="checkbox" id="filter2Fuss"/>Fu&szlig;</label>
 		<label onclick="updateFilter()"><input type="checkbox" id="filter2Pkw"/>PKW</label>
 		<label onclick="updateFilter()"><input type="checkbox" id="filter2Lkw"/>LKW</label>
-		<label onclick="updateFilter()"><input type="checkbox" id="filter2Krad"/>Krad</label>
+		<label onclick="updateFilter()"><input type="checkbox" id="filter2Krad"/>Krad</label><br/>
+		</div><br/>
+		Ort:	
+		<div>
+		<label onclick="updateFilter()"><input type="checkbox" id="filterAusserorts"/>Innerorts</label>
+		</div><br/>
+		Zeitraum:
+		<div>
+		  <input type="range" min="2015" max="2025" value="2015" id="jahrFilter" style='width:80%'><span id='jahrFeld' width='50px'>Alle</span>
 		</div>
-	</div>
+		</div>
   </div>
 
   <script type="text/javascript">
+    var yearFilter = 'Alle';
 	var displayFilter = [];
     function annotation(feature){
     var s = "<table>";
@@ -151,41 +168,20 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 	
     s += "<tr><td>Zeit/Datum der Messung:</td><td>" + feature.get('time') + "</td></tr>";
 
-    s += "<tr><td><div title='user_id'>Benutzer (pseudonymisiert):</div></td><td>" + feature.get('user_id') + "</td></tr>";
-    s += "<tr><td>Messungs-ID (pseudonymisiert):</td><td>" + feature.get('measurement_id') + "</td></tr>";
-
-    if (feature.get('has_OSM_annotations') == true){
-    s += "<tr><td>Position der Messung (korrigiert):</td><td>" + feature.get('latitude_projected').toFixed(6) + " " + feature.get('longitude_projected').toFixed(6) + "</td></tr>";
-    }
+//    if (feature.get('has_OSM_annotations') == true){
+//    s += "<tr><td>Position der Messung (korrigiert):</td><td>" + feature.get('latitude_projected').toFixed(6) + " " + feature.get('longitude_projected').toFixed(6) + "</td></tr>";
+//    }
     s += "<tr><td>Position der Messung (GPS):</td><td>" + feature.get('latitude_GPS') + " " + feature.get('longitude_GPS') + "</td></tr>";
 
-    d = feature.get('distance_stationary');
-    s += "<tr><td><div title='distance_stationary'>Abstand nach rechts:</div></td><td>" + ((d == null)?"n/a":d.toFixed(2)) + " m  </td></tr>";
-
-    s += "<tr><td><div title='speed'>"
-    if (feature.get("egomotion_is_derived") == true){
-    s += "Eigenbewegung (aus Pos. berechnet)";
-    } else {
-    s += "Eigenbewegung (von GPS)";
-    }
-    s += "</div></td><td>";
-    c = feature.get('course');
-    s += ((c == null)?"n/a":c.toFixed(0)) + " deg, ";
-
-    v = feature.get('speed');
-    s += ((v == null)?"n/a":(v * 3.6).toFixed(1)) + " km/h</td></tr>";
-
     if (feature.get('has_OSM_annotations')){
-    s += "<tr><td colspan=2><b>Information aus OpenStreetMap</b></td></tr>";
+    s += "</tr><tr><td>- </td></tr><tr><td colspan=2><b>Information aus OpenStreetMap</b></td></tr>";
     s += "<tr><td>Weg-Kategorie:</td><td>" + feature.get('OSM_highway') + "</td></tr>";
-    s += "<tr><td>Anzahl Fahrstreifen:</td><td>" + feature.get('OSM_lanes') + "</td></tr>";
+//    s += "<tr><td>Anzahl Fahrstreifen:</td><td>" + feature.get('OSM_lanes') + "</td></tr>";
     s += "<tr><td>Geschwindigkeitsbegrenzung:</td><td>" + feature.get('OSM_maxspeed') + " km/h</td></tr>";
     s += "<tr><td>Stra&szlig;enname:</td><td>" + feature.get('OSM_name') + "</td></tr>";
-    s += "<tr><td>inner-/au&szlig;orts:</td><td>" + feature.get('OSM_zone') + "</td></tr>";
-    s += "<tr><td>Einbahnsstra&szlig;e:</td><td>" + feature.get('OSM_oneway') + "</td></tr>";
-    s += "<tr><td>OSM Weg-ID:</td><td><a href=\"https://www.openstreetmap.org/way/" + feature.get('OSM_way_id') + "\" target=\"_blank\">" + feature.get('OSM_way_id') + "</a></td></tr>";
-    s += "<tr><td>Fahrtrichtung:</td><td>" + feature.get('OSM_way_orientation') + "</td></tr>";
-    s += "<tr><td>Comment:</td><td>" + feature.get('comment') + "</td></tr>";
+//    s += "<tr><td>inner-/au&szlig;orts:</td><td>" + feature.get('OSM_zone') + "</td></tr>";
+//    s += "<tr><td>OSM Weg-ID:</td><td><a href=\"https://www.openstreetmap.org/way/" + feature.get('OSM_way_id') + "\" target=\"_blank\">" + feature.get('OSM_way_id') + "</a></td></tr>";
+//    s += "<tr><td>Comment:</td><td>" + feature.get('comment') + "</td></tr>";
     } else {
     s += "<tr><td colspan=2>keine OpenStreemMap Informationen vorhanden</td></tr>";
     }
@@ -309,11 +305,11 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 //	case 3: color = [245, 254, 0, 255]; break;
 	}
     var stroke = strokeDefault;
-
+	var vis = true;
+	var ist = feature.get("IST");
 	if (show.length > 0) {
 		var match = false;
 		var match2 = show2.length == 0
-		var ist = feature.get("IST");
 		for (let c of show) {
 			if (ist.includes(c)) match = true;
 		}
@@ -321,11 +317,34 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			if (ist.includes(c)) match2 = true;
 		}
 		if (!(match && match2)) { 
-			color[3] = 0; 
-			stroke = strokeDeselected;
+			vis = false
+		}
+		if (show == show2 && ist.length > 1) {
+			vis = false
 		}
 	}
-
+	var streetname = feature.get('OSM_name');
+	if (intown && streetname == null) vis = false;
+	
+	if (yearFilter != 'Alle') {
+		if (!feature.get('time').includes(yearFilter)) {
+			vis = false
+		}
+	}
+	if (vis) {
+		if (show.length == 0) {
+			//  assume that  injuries effect foot or bike and not PKW or LKW
+			if (ist.includes('F') && ist.includes('R')) { ist = 'RF';}
+			else if (ist.includes('F')) { ist = 'F';}
+			else if (ist.includes('R')) { ist = 'R';}
+		}
+		for (let c of ist) {
+			stats[c+d]++
+		}
+	} else {
+		color[3] = 0; 
+		stroke = strokeDeselected;
+	}
 	var r = 4;
 	if (active < 0) r = 3;
 	if (active > 0) r = 6;
@@ -359,10 +378,12 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 				const overlay = document.getElementById("overlay");
 				const marginLeft = overlay.offsetWidth + overlay.offsetLeft;
     			map.getView().fit(extent, {size: mapSize, padding: [0, 0, 0, marginLeft]});
+				updateFilter();
 			}
 		});
 
 	var show = "", show2 = ""
+	var intown = false;
 	function updateFilter() {
 		show = "";
 		show2 = "";
@@ -376,9 +397,17 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		if (document.getElementById("filter2Pkw").checked) show2 += 'P';
 		if (document.getElementById("filter2Lkw").checked) show2 += 'L';
 		if (document.getElementById("filter2Krad").checked) show2 += 'K';
+		intown = document.getElementById("filterAusserorts").checked;
 		selectNode(null);
 	}
+	var stats = {};
 	function selectNode(feature) {
+		stats['P1'] = stats['P2'] = stats['P3'] = 0
+		stats['R1'] = stats['R2'] = stats['R3'] = 0
+		stats['F1'] = stats['F2'] = stats['F3'] = 0
+		stats['L1'] = stats['L2'] = stats['L3'] = 0
+		stats['K1'] = stats['K2'] = stats['K3'] = 0
+		stats['S1'] = stats['S2'] = stats['S3'] = 0
 		if (feature != null) {
 			var prop = feature.getProperties();
 			if (prop.hasOwnProperty('parent')) feature = prop.parent;
@@ -409,12 +438,20 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		f.setStyle(styleFunction(f, undefined, sel));
 		}
 		});
+		fillStats();
 	}
 
     map.on('singleclick', function(evt) {
 	var sources = vectorLayer.getSource();
 		var feature = vectorLayer.getSource().getClosestFeatureToCoordinate(evt.coordinate);
-		if (feature) selectNode(feature);
+		if (feature) {
+			var closest = feature.getGeometry().getClosestPoint(evt.coordinate);
+			var lonlat = ol.proj.transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326');
+			var lonlat2 = ol.proj.transform(closest, 'EPSG:3857', 'EPSG:4326');
+			distance = ol.sphere.getDistance([lonlat[0], lonlat[1]], [lonlat2[0], lonlat2[1]]);
+			if (distance < 100) selectNode(feature);
+			else selectNode(null)
+		}
 		return feature;
     });
 
@@ -431,6 +468,23 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		updateFilter();
   }
 }); 
+  var slider = document.getElementById("jahrFilter");
+  var output = document.getElementById("jahrFeld");
+  slider.oninput = function() {
+    var val = this.value;
+	if (val == '2015') { val = 'Alle';}
+	yearFilter = val;
+    output.innerHTML = val;
+	selectNode(null);
+  } 
+  
+  function fillStats() {
+	var body = document.getElementById("stats");
+	body.innerHTML = '<tr><th>t&ouml;dlich</th><td>'+stats['F1']+'</td><td>'+stats['R1']+'</td><td>'+stats['P1']+'</td><td>'+stats['L1']+'</td><td>'+stats['K1']+'</td><td>'+stats['S1']+'</td></tr>'+
+		'<tr><th>schwer</th><td>'+stats['F2']+'</td><td>'+stats['R2']+'</td><td>'+stats['P2']+'</td><td>'+stats['L2']+'</td><td>'+stats['K2']+'</td><td>'+stats['S2']+'</td></tr>'+
+		'<tr><th>leicht</th><td>'+stats['F3']+'</td><td>'+stats['R3']+'</td><td>'+stats['P3']+'</td><td>'+stats['L3']+'</td><td>'+stats['K3']+'</td><td>'+stats['S3']+'</td></tr>';
+  }
+
   </script>
 </body>
 </html>

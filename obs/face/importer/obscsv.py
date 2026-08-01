@@ -58,7 +58,7 @@ class ImportMeasurementsCsv:
         self.left_is_overtaker_side = left_right_is_swapped != right_hand_traffic
         self.case_is_overtaker_side = case_is_left == right_hand_traffic
 
-        self.reject_measurements_before = datetime.datetime(2018, 1, 1, tzinfo=datetime.timezone.utc)
+        self.reject_measurements_before = datetime.datetime(2000, 1, 1, tzinfo=datetime.timezone.utc)
 
         self.measurement_template = {'time': None, 'latitude': None, 'longitude': None,
                                      'distance_overtaker': None, 'distance_stationary': None, 'confirmed': None,
