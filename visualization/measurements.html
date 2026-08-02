@@ -108,9 +108,6 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		  <p>Visualisierung abgeleitet von <a href='https://github.com/openbikesensor/OpenBikeSensor-Scripts'>Open Bike Sensor Script</a>
 	    </div>
 	  </div>
-    <div id="caption" class="caption">
-    	<b>Bitte einen Messpunkt in der Karte (farbige Kreise) anklicken um detailierte Informationen zu erhalten.</b>
-    </div>
     <div class="legend">
 		<h4>Filter</h4>
 		Beteiligte:<div style='margin-left:15px'>
@@ -134,6 +131,9 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		  <input type="range" min="2015" max="2025" value="2015" id="jahrFilter" style='width:80%'><span id='jahrFeld' width='50px'>Alle</span>
 		</div>
 		</div>
+    <div id="caption" class="caption">
+    	<b>Bitte einen Messpunkt in der Karte (farbige Kreise) anklicken um detailierte Informationen zu erhalten.</b>
+    </div>
   </div>
 
   <script type="text/javascript">
@@ -292,19 +292,34 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
     style: function(feature, resolution){ return styleFunction(feature, resolution, 0);}
     })
 
+	//
+	// init styles
+	//
+	var styles = [];
+    styles[0] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 3,
+		stroke: strokeDeselected}) });
+    styles[1] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 4,
+		fill: new ol.style.Fill({color: [170, 0, 0, 255]}),
+		stroke: strokeDefault}) });
+    styles[2] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 4,
+		fill: new ol.style.Fill({color: [240, 0, 0, 255]}),
+		stroke: strokeDefault}) });
+    styles[3] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 4	,
+		fill: new ol.style.Fill({color: [253, 218, 13, 255]}),
+		stroke: strokeDefault}) });
+
+
     function styleFunction(feature, resolution, active) {
 	
     var d = Number(feature.get('KAT'))
-	color = [0,0,255,255];
-	switch(d) {
-	case 1: color = [170, 0, 0, 255]; break;
-	case 2: color = [240, 0, 0, 255]; break;
-	case 3: color = [253, 218, 13, 255]; break;
-//	case 1: color = [240, 0, 0, 255]; break;
-//	case 2: color = [245, 151, 51, 255]; break;
-//	case 3: color = [245, 254, 0, 255]; break;
-	}
-    var stroke = strokeDefault;
 	var vis = true;
 	var ist = feature.get("IST");
 	if (show.length > 0) {
@@ -342,21 +357,9 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 			stats[c+d]++
 		}
 	} else {
-		color[3] = 0; 
-		stroke = strokeDeselected;
+		d = 0;
 	}
-	var r = 4;
-	if (active < 0) r = 3;
-	if (active > 0) r = 6;
-
-    var style = new ol.style.Style({
-    image: new ol.style.Circle({
-    radius: r,
-    fill: new ol.style.Fill({color: color}),
-    stroke: stroke
-    })
-    });
-    return style;
+    return styles[d];
     }
 
     map.addLayer(vectorLayer);
