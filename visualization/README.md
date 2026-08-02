@@ -1,4 +1,6 @@
 # Overview
+Visualization of accidents based on NRW statistics.
+
 OBS-FACE-Visualization visualizes the output of the [OpenBikeSensor FACE script](https://github.com/openbikesensor/OpenBikeSensor-Scripts/blob/main/docs/obs-face.md) in a map overlay style.    
 
 The visualization is implemented as two static HTMl/JavaScript websites, requiring a simple HTTP server and a recent web browser on client side. 
