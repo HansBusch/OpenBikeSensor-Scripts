@@ -312,7 +312,26 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 		stroke: strokeDefault}) });
     styles[3] = new ol.style.Style({
 		image: new ol.style.Circle({
-		radius: 4	,
+		radius: 4,
+		fill: new ol.style.Fill({color: [253, 218, 13, 255]}),
+		stroke: strokeDefault}) });
+    styles[4] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 6,
+		stroke: strokeDeselected}) });
+    styles[5] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 6,
+		fill: new ol.style.Fill({color: [170, 0, 0, 255]}),
+		stroke: strokeDefault}) });
+    styles[6] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 6,
+		fill: new ol.style.Fill({color: [240, 0, 0, 255]}),
+		stroke: strokeDefault}) });
+    styles[7] = new ol.style.Style({
+		image: new ol.style.Circle({
+		radius: 6,
 		fill: new ol.style.Fill({color: [253, 218, 13, 255]}),
 		stroke: strokeDefault}) });
 
@@ -359,6 +378,7 @@ along with the OpenBikeSensor Scripts Collection.  If not, see
 	} else {
 		d = 0;
 	}
+	if (active > 0) { d += 4;}
     return styles[d];
     }
 
